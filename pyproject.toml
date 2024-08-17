@@ -12,6 +12,7 @@ sqlalchemy = "^2.0.32"
 pydantic-settings = "^2.4.0"
 alembic = "^1.13.2"
 pwdlib = {extras = ["argon2"], version = "^0.2.0"}
+factory-boy = "^3.3.0"
 
 
 [tool.poetry.group.dev.dependencies]

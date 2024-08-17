@@ -4,12 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
+
 from madr.database import get_session
-from madr.schemas import UserPublic, UserSchema
-
 from madr.models import User
+from madr.schemas import UserPublic, UserSchema
 from madr.security import get_password_hash
-
 
 T_Session = Annotated[Session, Depends(get_session)]
 
@@ -26,18 +25,12 @@ def create_user(
             (User.username == user.username) | (User.email == user.email)
         )
     )
-    
+
     if db_user:
-        if db_user.username == user.username:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Username already exists',
-            )
-        elif db_user.email == user.email:
-            raise HTTPException(
-                status_code=HTTPStatus.BAD_REQUEST,
-                detail='Email already exists',
-            )
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='conta já consta no MADR',
+        )
 
     db_user = User(
         username=user.username,
