@@ -13,6 +13,9 @@ pydantic-settings = "^2.4.0"
 alembic = "^1.13.2"
 pwdlib = {extras = ["argon2"], version = "^0.2.0"}
 factory-boy = "^3.3.0"
+pyjwt = "^2.9.0"
+python-multipart = "^0.0.9"
+freezegun = "^1.5.1"
 
 
 [tool.poetry.group.dev.dependencies]

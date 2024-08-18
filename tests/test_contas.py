@@ -42,3 +42,108 @@ def test_create_user_conflict(client, user, payload):
     response = client.post('/contas/', json=payload)
     assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {'detail': 'conta já consta no MADR'}
+
+
+# Teste auth
+def test_get_token(client, user):
+    response = client.post(
+        '/contas/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in token
+    assert token['token_type'] == 'Bearer'
+
+
+@pytest.mark.parametrize(
+    'form',
+    [
+        # Non-existent user
+        {'username': 'non_existent', 'password': '123456'},
+        # Wrong password
+        {'username': 'user1@test.com', 'password': 'wrong_password'},
+    ],
+)
+def test_get_token_invalid(client, form, user):
+    response = client.post(
+        '/contas/token',
+        data=form,
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+    assert response.json() == {'detail': 'Email ou senha incorretos'}
+
+
+def test_update_user(client, user, token):
+    response = client.put(
+        f'/contas/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'new_username',
+            'email': 'new_email@email.com',
+            'password': 'new_password',
+            'id': 999,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'username': 'new_username',
+        'email': 'new_email@email.com',
+        'id': 1,
+    }
+
+
+def test_update_user_other_client_id(client, user, token):
+    response = client.put(
+        '/contas/99',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'new_username',
+            'email': 'new_email@email.com',
+            'password': 'new_password',
+            'id': 999,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
+
+
+def test_update_user_repeating_other_user_username(
+    client, user, other_user, token
+):
+    response = client.put(
+        f'/contas/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': other_user.username,
+            'email': 'a-new-email@email.com',
+            'password': 'new_password',
+            'id': 999,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'conta já consta no MADR'}
+
+
+def test_update_user_repeating_other_user_email(
+    client, user, other_user, token
+):
+    response = client.put(
+        f'/contas/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'a-new-username',
+            'email': other_user.email,
+            'password': 'new_password',
+            'id': 999,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'conta já consta no MADR'}

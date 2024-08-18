@@ -60,3 +60,27 @@ def user(session):
     user.clean_password = pwd
 
     return user
+
+
+@pytest.fixture
+def other_user(session):
+    pwd = 'testtest'
+    other_user = UserFactory(password=get_password_hash(pwd))
+
+    session.add(other_user)
+    session.commit()
+    session.refresh(other_user)
+
+    other_user.clean_password = pwd
+
+    return other_user
+
+
+@pytest.fixture
+def token(client, user):
+    response = client.post(
+        '/contas/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+
+    return response.json()['access_token']
