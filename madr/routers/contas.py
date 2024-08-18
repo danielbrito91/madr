@@ -16,7 +16,7 @@ from madr.security import (
     verify_password,
 )
 
-router = APIRouter(prefix='/contas', tags=['contas'])
+router = APIRouter(prefix='/user', tags=['contas'])
 
 T_Session = Annotated[Session, Depends(get_session)]
 T_Current_User = Annotated[User, Depends(get_current_user)]
@@ -87,9 +87,22 @@ def update_user(
     return current_user
 
 
-@router.delete('/{id}', status_code=HTTPStatus.NO_CONTENT)
-def delete_user():
-    pass
+@router.delete('/{user_id}')
+def delete_user(
+    user_id: int,
+    session: T_Session,
+    current_user: T_Current_User,
+):
+    if current_user.id != user_id:
+        raise HTTPException(
+            status_code=HTTPStatus.UNAUTHORIZED,
+            detail='Não autorizado',
+        )
+
+    session.delete(current_user)
+    session.commit()
+
+    return {'message': 'Conta deletada com sucesso'}
 
 
 @router.post('/token', response_model=Token)

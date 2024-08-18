@@ -15,7 +15,7 @@ from madr.models import User
 from madr.settings import Settings
 
 pwd_context = PasswordHash.recommended()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='contas/token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='user/token')
 settings = Settings()
 
 
@@ -48,7 +48,7 @@ def get_current_user(
 ):
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
-        detail='Could not validate credentials',
+        detail='Não autorizado',
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:

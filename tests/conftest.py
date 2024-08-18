@@ -79,7 +79,7 @@ def other_user(session):
 @pytest.fixture
 def token(client, user):
     response = client.post(
-        '/contas/token',
+        '/user/token',
         data={'username': user.email, 'password': user.clean_password},
     )
 

@@ -5,7 +5,7 @@ import pytest
 
 def test_create_user(client):
     response = client.post(
-        '/contas/',
+        '/user/',
         json={
             'username': 'test',
             'email': 'test@test.com',
@@ -39,7 +39,7 @@ def test_create_user(client):
     ],
 )
 def test_create_user_conflict(client, user, payload):
-    response = client.post('/contas/', json=payload)
+    response = client.post('/user/', json=payload)
     assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {'detail': 'conta já consta no MADR'}
 
@@ -47,7 +47,7 @@ def test_create_user_conflict(client, user, payload):
 # Teste auth
 def test_get_token(client, user):
     response = client.post(
-        '/contas/token',
+        '/user/token',
         data={'username': user.email, 'password': user.clean_password},
     )
 
@@ -69,7 +69,7 @@ def test_get_token(client, user):
 )
 def test_get_token_invalid(client, form, user):
     response = client.post(
-        '/contas/token',
+        '/user/token',
         data=form,
     )
 
@@ -79,7 +79,7 @@ def test_get_token_invalid(client, form, user):
 
 def test_update_user(client, user, token):
     response = client.put(
-        f'/contas/{user.id}',
+        f'/user/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'new_username',
@@ -99,7 +99,7 @@ def test_update_user(client, user, token):
 
 def test_update_user_other_client_id(client, user, token):
     response = client.put(
-        '/contas/99',
+        '/user/99',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'new_username',
@@ -117,7 +117,7 @@ def test_update_user_repeating_other_user_username(
     client, user, other_user, token
 ):
     response = client.put(
-        f'/contas/{user.id}',
+        f'/user/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': other_user.username,
@@ -135,7 +135,7 @@ def test_update_user_repeating_other_user_email(
     client, user, other_user, token
 ):
     response = client.put(
-        f'/contas/{user.id}',
+        f'/user/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'a-new-username',
@@ -147,3 +147,37 @@ def test_update_user_repeating_other_user_email(
 
     assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {'detail': 'conta já consta no MADR'}
+
+
+def test_delete_user(client, user, token):
+    response = client.delete(
+        f'/user/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'message': 'Conta deletada com sucesso'}
+
+
+def test_delete_user_other_client_id(client, other_user, token):
+    response = client.delete(
+        f'/user/{other_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
+
+
+def test_refresh_token(client, user, token):
+    response = client.post(
+        '/user/refresh-token',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    data = response.json()
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in data
+    assert 'token_type' in data
+    assert data['token_type'] == 'Bearer'

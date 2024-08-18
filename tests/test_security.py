@@ -2,10 +2,11 @@ from datetime import datetime, timedelta
 from http import HTTPStatus
 
 import pytest
+from fastapi import HTTPException
 from freezegun import freeze_time
 from jwt import decode
 
-from madr.security import create_access_token
+from madr.security import create_access_token, get_current_user
 from madr.settings import Settings
 
 settings = Settings()
@@ -21,12 +22,11 @@ def test_jwt():
     assert 'exp' in decoded
 
 
-@pytest.mark.skip(reason='Teste não implementado')
 def test_token_expires(client, user):
     start_time = '2024-01-01 12:00:00'
     with freeze_time(start_time):
         response = client.post(
-            '/contas/token',
+            '/user/token',
             data={'username': user.email, 'password': user.clean_password},
         )
 
@@ -38,8 +38,30 @@ def test_token_expires(client, user):
         + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES + 1)
     ):
         response = client.put(
-            f'/contas/{user.id}', headers={'Authorization': f'Bearer {token}'}
+            f'/user/{user.id}',
+            headers={'Authorization': f'Bearer {token}'},
+            data={
+                'username': 'new_username',
+                'email': 'new_email',
+                'password': 'new_password',
+            },
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
-        assert response.json() == {'detail': 'Token has expired'}
+        assert response.json() == {'detail': 'Não autorizado'}
+
+
+def test_get_current_user_without_email_must_return_exception(session):
+    data = {}
+    token = create_access_token(data)
+
+    with pytest.raises(HTTPException):
+        get_current_user(session=session, token=token)
+
+
+def test_get_current_user_with_invalid_email_must_return_exception(session):
+    data = {'sub': 'thisemaildoestnotexist@test.com'}
+    token = create_access_token(data)
+
+    with pytest.raises(HTTPException):
+        get_current_user(session=session, token=token)
