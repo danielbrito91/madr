@@ -33,7 +33,7 @@ class LivroFactory(factory.Factory):
 
     titulo = factory.Sequence(lambda n: f'livro{n}')
     ano = factory.Sequence(lambda n: 1900 + n)
-    romancista_id = factory.SubFactory(RomancistaFactory)
+    romancista_id = factory.Sequence(lambda n: n + 1)
 
 
 @pytest.fixture

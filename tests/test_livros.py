@@ -34,3 +34,38 @@ def test_add_livro_with_romancista_not_found(client, token):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'romancista não encontrado'}
+
+
+def test_add_livro_already_exists(client, token, romancista, livro):
+    response = client.post(
+        '/livros/',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'titulo': livro.titulo,
+            'ano': livro.ano,
+            'romancista_id': livro.romancista_id,
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'livro já consta no MADR'}
+
+
+def test_delete_livro(client, token, romancista, livro):
+    response = client.delete(
+        f'/livros/{livro.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'message': 'Livro deletado no MADR'}
+
+
+def test_delete_livro_does_not_exists(client, token, romancista, livro):
+    response = client.delete(
+        '/livros/999',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {'detail': 'Livro não consta no MADR'}

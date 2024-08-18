@@ -60,3 +60,50 @@ def create_livro(
 
     print(db_romancista)
     return db_livro
+
+
+@router.delete('/{livro_id}')
+def delete_livro(
+    livro_id: int,
+    session: T_Session,
+    current_user: T_Current_User,
+):
+    db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
+
+    if not db_livro:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Livro não consta no MADR',
+        )
+
+    session.delete(db_livro)
+    session.commit()
+
+    return {'message': 'Livro deletado no MADR'}
+
+
+@router.patch('/{livro_id}', response_model=LivroPublic)
+def update_livro(
+    livro_id: int,
+    livro: LivroSchema,
+    session: T_Session,
+    current_user: T_Current_User,
+):
+    raise NotImplementedError
+
+
+@router.get('/{livro_id}', response_model=LivroPublic)
+def get_livro_by_id(
+    livro_id: int,
+    session: T_Session,
+    current_user: T_Current_User,
+):
+    raise NotImplementedError
+
+
+@router.get('/', response_model=list[LivroPublic])
+def get_livros(
+    session: T_Session,
+    current_user: T_Current_User,
+):
+    raise NotImplementedError
