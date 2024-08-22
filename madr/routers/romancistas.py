@@ -40,8 +40,14 @@ def create_romancista(romancista: RomancistaSchema, session: T_Session):
 
 
 @router.delete('/{romancista_id}')
-def delete_romancista(romancista_id: int):
-    raise NotImplementedError
+def delete_romancista(romancista_id: int, session: T_Session):
+    db_romancista = session.scalar(select(Romancista).where(Romancista.id == romancista_id))
+    if not db_romancista:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='romancista não encontrado',
+        )
+    return {'message': 'Romancista deletada no MADR'}
 
 
 @router.patch('/{romancista_id}', response_model=RomancistaPublic)
