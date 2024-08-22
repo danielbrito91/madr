@@ -1,4 +1,8 @@
+from typing import Sequence, TypeVar
+
 from pydantic import BaseModel, EmailStr
+
+T = TypeVar('T')
 
 
 class UserSchema(BaseModel):
@@ -44,3 +48,11 @@ class RomancistaSchema(BaseModel):
 class RomancistaPublic(BaseModel):
     id: int
     nome: str
+
+
+class RomancistaList(BaseModel):
+    total: int
+    romancistas: Sequence[T]
+    page: int
+    size: int
+    pages: int

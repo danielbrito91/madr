@@ -2,12 +2,14 @@ from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
 from madr.database import get_session
 from madr.models import Romancista
-from madr.schemas import RomancistaPublic, RomancistaSchema
+from madr.schemas import RomancistaList, RomancistaPublic, RomancistaSchema
 from madr.utils import sanitiza_nome
 
 router = APIRouter(prefix='/romancistas', tags=['romancistas'])
@@ -87,10 +89,35 @@ def update_romancista(
 
 
 @router.get('/{romancista_id}', response_model=RomancistaPublic)
-def read_romancista_by_id(romancista_id: int):
-    raise NotImplementedError
+def read_romancista_by_id(romancista_id: int, session: T_Session):
+    db_romancista = session.scalar(
+        select(Romancista).where(Romancista.id == romancista_id)
+    )
+    if not db_romancista:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='romancista não encontrado',
+        )
+    return db_romancista
 
 
-@router.get('/', response_model=list[RomancistaPublic])
-def read_romancistas():
-    raise NotImplementedError
+@router.get('/', response_model=RomancistaList)  # Page[RomancistaPublic]
+def read_romancistas(
+    session: T_Session,
+    nome: str,
+    params: Params = Params(size=20),
+):
+    query = select(Romancista).where(
+        Romancista.nome.contains(sanitiza_nome(nome))
+    )
+
+    paginated = paginate(session, query, params)
+    r_pag = RomancistaList(
+        total=paginated.total,
+        romancistas=paginated.items,
+        page=paginated.page,
+        size=paginated.size,
+        pages=paginated.pages,
+    )
+
+    return r_pag
