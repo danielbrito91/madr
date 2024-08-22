@@ -1,9 +1,9 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi_pagination import Page
+from fastapi_pagination import Page, Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
@@ -135,8 +135,9 @@ def get_livros(  # noqa
     current_user: T_Current_User,
     titulo: str | None = None,
     ano: int | None = None,
-    limit: int = Query(20, ge=0, le=20),
-    offset: int = Query(0, ge=0),
+    params: Params = Params(size=20),
+    # limit: int = 20,
+    # limit: int = Query(20, ge=0, le=20),
 ):
     query = select(Livro)
     if titulo:
@@ -145,4 +146,4 @@ def get_livros(  # noqa
     if ano:
         query = query.where(Livro.ano == ano)
 
-    return paginate(session, query)
+    return paginate(session, query, params)

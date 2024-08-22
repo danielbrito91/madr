@@ -165,8 +165,18 @@ def test_get_livro_by_id_not_found(client, token, romancista, livro):
     [
         (
             {'size': 1, 'titulo': 'Dom Casmurro'},
-            '/livros/?titulo=Dom Casmurro',
+            '/livros/?titulo=Dom Casmurro&limit=20',
             1,
+        ),
+        (
+            {'size': 10, 'ano': 2024},
+            '/livros/?ano=2024&limit=20',
+            10,
+        ),
+        (
+            {'size': 60, 'ano': 2024},
+            '/livros/?ano=2024&limit=20',
+            60,
         ),
     ],
 )
@@ -177,6 +187,7 @@ def test_get_livro(  # noqa
     livros_params,
     url,
     expected_livros,
+    page_limit: int = 20,
 ):
     session.bulk_save_objects(
         RomancistaFactory.create_batch(size=livros_params.get('size'))
@@ -190,6 +201,13 @@ def test_get_livro(  # noqa
         url,
         headers={'Authorization': f'Bearer {token}'},
     )
-
+    print(response.json())
+    query_param, query_value = list(livros_params.items())[1]
     assert response.status_code == HTTPStatus.OK
-    assert len(response.json()['items']) == expected_livros
+    assert response.json()['total'] == expected_livros
+    assert response.json()['size'] == page_limit
+    assert (
+        response.json()['pages']
+        == (expected_livros + page_limit - 1) // page_limit
+    )
+    assert response.json()['items'][0][query_param] == query_value
