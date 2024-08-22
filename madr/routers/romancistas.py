@@ -41,7 +41,9 @@ def create_romancista(romancista: RomancistaSchema, session: T_Session):
 
 @router.delete('/{romancista_id}')
 def delete_romancista(romancista_id: int, session: T_Session):
-    db_romancista = session.scalar(select(Romancista).where(Romancista.id == romancista_id))
+    db_romancista = session.scalar(
+        select(Romancista).where(Romancista.id == romancista_id)
+    )
     if not db_romancista:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
@@ -51,8 +53,37 @@ def delete_romancista(romancista_id: int, session: T_Session):
 
 
 @router.patch('/{romancista_id}', response_model=RomancistaPublic)
-def update_romancista(romancista_id: int, nome: RomancistaSchema):
-    raise NotImplementedError
+def update_romancista(
+    romancista_id: int, romancista: RomancistaSchema, session: T_Session
+):
+    db_romancista = session.scalar(
+        select(Romancista).where(Romancista.id == romancista_id)
+    )
+
+    if not db_romancista:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='romancista não encontrado',
+        )
+
+    nome_sanitizado = sanitiza_nome(romancista.nome)
+
+    db_romancista_nome = session.scalar(
+        select(Romancista).where(Romancista.nome == nome_sanitizado)
+    )
+    if db_romancista_nome:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='romancista já consta no MADR',
+        )
+
+    setattr(db_romancista, 'nome', nome_sanitizado)
+
+    session.add(db_romancista)
+    session.commit()
+    session.refresh(db_romancista)
+
+    return db_romancista
 
 
 @router.get('/{romancista_id}', response_model=RomancistaPublic)
