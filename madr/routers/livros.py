@@ -9,14 +9,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
 from madr.database import get_session
-from madr.models import Livro, Romancista, User
+from madr.models import Livro, Romancista
 from madr.schemas import (
     LivroPublic,
     LivroSchema,
     LivroUpdate,
-)
-from madr.security import (
-    get_current_user,
 )
 from madr.utils import sanitiza_nome
 
@@ -24,7 +21,6 @@ router = APIRouter(prefix='/livros', tags=['livros'])
 
 
 T_Session = Annotated[Session, Depends(get_session)]
-T_Current_User = Annotated[User, Depends(get_current_user)]
 T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
@@ -32,7 +28,6 @@ T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 def create_livro(
     livro: LivroSchema,
     session: T_Session,
-    current_user: T_Current_User,
 ):
     titulo_sanitizado = sanitiza_nome(livro.titulo)
     db_livro = session.scalar(
@@ -75,7 +70,6 @@ def create_livro(
 def delete_livro(
     livro_id: int,
     session: T_Session,
-    current_user: T_Current_User,
 ):
     db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
 
@@ -96,7 +90,6 @@ def update_livro(
     livro_id: int,
     livro: LivroUpdate,
     session: T_Session,
-    current_user: T_Current_User,
 ):
     db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
 
@@ -123,7 +116,6 @@ def update_livro(
 def get_livro_by_id(
     livro_id: int,
     session: T_Session,
-    current_user: T_Current_User,
 ):
     db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
     if not db_livro:
@@ -138,12 +130,9 @@ def get_livro_by_id(
 @router.get('/', response_model=Page[LivroPublic])
 def get_livros(  # noqa
     session: T_Session,
-    current_user: T_Current_User,
     titulo: str | None = None,
     ano: int | None = None,
     params: Params = Params(size=20),
-    # limit: int = 20,
-    # limit: int = Query(20, ge=0, le=20),
 ):
     query = select(Livro)
     if titulo:
