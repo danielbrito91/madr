@@ -16,6 +16,7 @@ factory-boy = "^3.3.0"
 pyjwt = "^2.9.0"
 python-multipart = "^0.0.9"
 freezegun = "^1.5.1"
+fastapi-pagination = "^0.12.26"
 
 
 [tool.poetry.group.dev.dependencies]

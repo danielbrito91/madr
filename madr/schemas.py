@@ -31,6 +31,12 @@ class LivroPublic(BaseModel):
     romancista_id: int
 
 
+class LivroUpdate(BaseModel):
+    ano: int | None = None
+    titulo: str | None = None
+    romancista_id: int | None = None
+
+
 class RomancistaSchema(BaseModel):
     nome: str
 

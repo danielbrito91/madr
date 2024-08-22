@@ -1,19 +1,26 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
 from madr.database import get_session
 from madr.models import Livro, Romancista, User
-from madr.schemas import LivroPublic, LivroSchema
+from madr.schemas import (
+    LivroPublic,
+    LivroSchema,
+    LivroUpdate,
+)
 from madr.security import (
     get_current_user,
 )
 
 router = APIRouter(prefix='/livros', tags=['livros'])
+
 
 T_Session = Annotated[Session, Depends(get_session)]
 T_Current_User = Annotated[User, Depends(get_current_user)]
@@ -82,14 +89,28 @@ def delete_livro(
     return {'message': 'Livro deletado no MADR'}
 
 
-@router.patch('/{livro_id}', response_model=LivroPublic)
+@router.patch('/{livro_id}', response_model=LivroSchema)
 def update_livro(
     livro_id: int,
-    livro: LivroSchema,
+    livro: LivroUpdate,
     session: T_Session,
     current_user: T_Current_User,
 ):
-    raise NotImplementedError
+    db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
+
+    if not db_livro:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Livro não consta no MADR',
+        )
+    for field, value in livro.model_dump(exclude_unset=True).items():
+        setattr(db_livro, field, value)
+
+    session.add(db_livro)
+    session.commit()
+    session.refresh(db_livro)
+
+    return db_livro
 
 
 @router.get('/{livro_id}', response_model=LivroPublic)
@@ -98,12 +119,30 @@ def get_livro_by_id(
     session: T_Session,
     current_user: T_Current_User,
 ):
-    raise NotImplementedError
+    db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
+    if not db_livro:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND,
+            detail='Livro não consta no MADR',
+        )
+
+    return db_livro
 
 
-@router.get('/', response_model=list[LivroPublic])
-def get_livros(
+@router.get('/', response_model=Page[LivroPublic])
+def get_livros(  # noqa
     session: T_Session,
     current_user: T_Current_User,
+    titulo: str | None = None,
+    ano: int | None = None,
+    limit: int = Query(20, ge=0, le=20),
+    offset: int = Query(0, ge=0),
 ):
-    raise NotImplementedError
+    query = select(Livro)
+    if titulo:
+        query = query.where(Livro.titulo == titulo)
+
+    if ano:
+        query = query.where(Livro.ano == ano)
+
+    return paginate(session, query)
