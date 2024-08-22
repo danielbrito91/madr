@@ -18,7 +18,7 @@ def test_add_livro(client, token, romancista):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'titulo': 'Dom Casmurro',
+        'titulo': 'dom casmurro',
         'ano': 1899,
         'romancista_id': 1,
         'id': 1,
@@ -86,7 +86,7 @@ def test_patch_livro_titulo(client, token, romancista, livro):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'titulo': 'Dom Casmurro',
+        'titulo': 'dom casmurro',
         'ano': livro.ano,
         'romancista_id': livro.romancista_id,
     }
@@ -165,17 +165,22 @@ def test_get_livro_by_id_not_found(client, token, romancista, livro):
     [
         (
             {'size': 1, 'titulo': 'Dom Casmurro'},
-            '/livros/?titulo=Dom Casmurro&limit=20',
+            '/livros/?titulo=Dom Casmurro',
+            1,
+        ),
+        (
+            {'size': 1, 'titulo': 'Dom Casmurro'},
+            '/livros/?titulo=dom',
             1,
         ),
         (
             {'size': 10, 'ano': 2024},
-            '/livros/?ano=2024&limit=20',
+            '/livros/?ano=2024',
             10,
         ),
         (
             {'size': 60, 'ano': 2024},
-            '/livros/?ano=2024&limit=20',
+            '/livros/?ano=2024',
             60,
         ),
     ],

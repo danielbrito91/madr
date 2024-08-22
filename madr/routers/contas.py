@@ -15,6 +15,7 @@ from madr.security import (
     get_password_hash,
     verify_password,
 )
+from madr.utils import sanitiza_nome
 
 router = APIRouter(prefix='/user', tags=['contas'])
 
@@ -28,9 +29,10 @@ def create_user(
     user: UserSchema,
     session: T_Session,
 ):
+    username_sanitizado = sanitiza_nome(user.username)
     db_user = session.scalar(
         select(User).where(
-            (User.username == user.username) | (User.email == user.email)
+            (User.username == username_sanitizado) | (User.email == user.email)
         )
     )
 
@@ -41,7 +43,7 @@ def create_user(
         )
 
     db_user = User(
-        username=user.username,
+        username=username_sanitizado,
         email=user.email,
         password=get_password_hash(user.password),
     )
@@ -65,9 +67,10 @@ def update_user(
             detail='Não autorizado',
         )
 
+    username_sanitizado = sanitiza_nome(user.username)
     db_user = session.scalar(
         select(User).where(
-            (User.username == user.username) | (User.email == user.email)
+            (User.username == username_sanitizado) | (User.email == user.email)
         )
     )
     if db_user:
@@ -76,7 +79,7 @@ def update_user(
             detail='conta já consta no MADR',
         )
 
-    current_user.username = user.username
+    current_user.username = username_sanitizado
     current_user.email = user.email
     current_user.password = get_password_hash(user.password)
 

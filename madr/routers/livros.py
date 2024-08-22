@@ -18,6 +18,7 @@ from madr.schemas import (
 from madr.security import (
     get_current_user,
 )
+from madr.utils import sanitiza_nome
 
 router = APIRouter(prefix='/livros', tags=['livros'])
 
@@ -33,9 +34,10 @@ def create_livro(
     session: T_Session,
     current_user: T_Current_User,
 ):
+    titulo_sanitizado = sanitiza_nome(livro.titulo)
     db_livro = session.scalar(
         select(Livro).where(
-            (Livro.titulo == livro.titulo)
+            (Livro.titulo == titulo_sanitizado)
             & (Livro.romancista_id == livro.romancista_id)
         )
     )
@@ -57,7 +59,7 @@ def create_livro(
         )
 
     db_livro = Livro(
-        titulo=livro.titulo,
+        titulo=titulo_sanitizado,
         ano=livro.ano,
         romancista_id=livro.romancista_id,
     )
@@ -104,7 +106,11 @@ def update_livro(
             detail='Livro não consta no MADR',
         )
     for field, value in livro.model_dump(exclude_unset=True).items():
-        setattr(db_livro, field, value)
+        if field == 'titulo':
+            sanitezed_value = sanitiza_nome(value)
+            setattr(db_livro, field, sanitezed_value)
+        else:
+            setattr(db_livro, field, value)
 
     session.add(db_livro)
     session.commit()
@@ -141,7 +147,8 @@ def get_livros(  # noqa
 ):
     query = select(Livro)
     if titulo:
-        query = query.where(Livro.titulo == titulo)
+        titulo_sanitizado = sanitiza_nome(titulo)
+        query = query.where(Livro.titulo.contains(titulo_sanitizado))
 
     if ano:
         query = query.where(Livro.ano == ano)
