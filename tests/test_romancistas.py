@@ -54,7 +54,6 @@ def test_patch_romancista(client, token, romancista):
         json={'nome': 'Machado de Assis'},
     )
 
-    print(response.json())
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'nome': 'machado de assis', 'id': romancista.id}
 
