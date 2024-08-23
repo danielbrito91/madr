@@ -17,6 +17,7 @@ pyjwt = "^2.9.0"
 python-multipart = "^0.0.9"
 freezegun = "^1.5.1"
 fastapi-pagination = "^0.12.26"
+psycopg = {extras = ["binary"], version = "^3.2.1"}
 
 
 [tool.poetry.group.dev.dependencies]
