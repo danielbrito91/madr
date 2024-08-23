@@ -2,7 +2,7 @@ from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi_pagination import Page, Params
+from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
@@ -10,6 +10,7 @@ from sqlalchemy.sql import select
 from madr.database import get_session
 from madr.models import Livro, Romancista, User
 from madr.schemas import (
+    LivroList,
     LivroPublic,
     LivroSchema,
     LivroUpdate,
@@ -129,7 +130,7 @@ def get_livro_by_id(
     return db_livro
 
 
-@router.get('/', response_model=Page[LivroPublic])
+@router.get('/', response_model=LivroList)  # Page[LivroPublic]
 def get_livros(  # noqa
     session: T_Session,
     titulo: str | None = None,
@@ -144,4 +145,12 @@ def get_livros(  # noqa
     if ano:
         query = query.where(Livro.ano == ano)
 
-    return paginate(session, query, params)
+    paginated = paginate(session, query, params)
+
+    return LivroList(
+        total=paginated.total,
+        livros=paginated.items,
+        page=paginated.page,
+        size=paginated.size,
+        pages=paginated.pages,
+    )

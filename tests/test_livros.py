@@ -216,6 +216,11 @@ def test_get_livro_by_id_without_token(client, romancista, livro):
             1,
         ),
         (
+            {'size': 1, 'titulo': 'Dom Casmurro'},
+            '/livros/?titulo=lusíadas',
+            0,
+        ),
+        (
             {'size': 10, 'ano': 2024},
             '/livros/?ano=2024',
             10,
@@ -256,7 +261,10 @@ def test_get_livro(  # noqa
         response.json()['pages']
         == (expected_livros + page_limit - 1) // page_limit
     )
-    assert response.json()['items'][0][query_param] == query_value
+    if expected_livros > 0:
+        assert response.json()['livros'][0][query_param] == query_value
+    elif expected_livros == 0:
+        assert response.json()['livros'] == []
 
 
 def test_get_livro_without_token(client, romancista, livro):
@@ -265,4 +273,4 @@ def test_get_livro_without_token(client, romancista, livro):
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json()['items'][0]['titulo'] == livro.titulo
+    assert response.json()['livros'][0]['titulo'] == livro.titulo

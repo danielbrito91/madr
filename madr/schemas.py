@@ -41,6 +41,14 @@ class LivroUpdate(BaseModel):
     romancista_id: int | None = None
 
 
+class LivroList(BaseModel):
+    total: int
+    livros: Sequence[T]
+    page: int
+    size: int
+    pages: int
+
+
 class RomancistaSchema(BaseModel):
     nome: str
 
