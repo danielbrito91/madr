@@ -125,12 +125,17 @@ def read_romancistas(
     )
 
     paginated = paginate(session, query, params)
-    r_pag = RomancistaList(
+
+    return RomancistaList(
         total=paginated.total,
-        romancistas=paginated.items,
+        romancistas=[
+            RomancistaPublic(
+                id=i.id,
+                nome=i.nome,
+            )
+            for i in paginated.items
+        ],
         page=paginated.page,
         size=paginated.size,
         pages=paginated.pages,
     )
-
-    return r_pag

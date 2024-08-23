@@ -156,10 +156,18 @@ def get_livros(  # noqa
         query = query.where(Livro.ano == ano)
 
     paginated = paginate(session, query, params)
-
+    print(paginated)
     return LivroList(
         total=paginated.total,
-        livros=paginated.items,
+        livros=[
+            LivroPublic(
+                id=i.id,
+                ano=i.ano,
+                titulo=i.titulo,
+                romancista_id=i.romancista_id,
+            )
+            for i in paginated.items
+        ],
         page=paginated.page,
         size=paginated.size,
         pages=paginated.pages,

@@ -43,7 +43,7 @@ class LivroUpdate(BaseModel):
 
 class LivroList(BaseModel):
     total: int
-    livros: Sequence[T]
+    livros: Sequence[LivroPublic]
     page: int
     size: int
     pages: int
@@ -60,7 +60,7 @@ class RomancistaPublic(BaseModel):
 
 class RomancistaList(BaseModel):
     total: int
-    romancistas: Sequence[T]
+    romancistas: Sequence[RomancistaPublic]
     page: int
     size: int
     pages: int
