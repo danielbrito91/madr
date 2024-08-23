@@ -169,7 +169,7 @@ def test_delete_user_other_client_id(client, other_user, token):
     assert response.json() == {'detail': 'Não autorizado'}
 
 
-def test_refresh_token(client, user, token):
+def test_refresh_token(client, token):
     response = client.post(
         '/refresh-token',
         headers={'Authorization': f'Bearer {token}'},

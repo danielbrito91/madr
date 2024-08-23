@@ -19,7 +19,7 @@ from madr.security import (
 
 T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 T_Session = Annotated[Session, Depends(get_session)]
-T_Current_User = Annotated[User, Depends(get_current_user)]
+T_CurrentUser = Annotated[User, Depends(get_current_user)]
 
 app = FastAPI()
 app.include_router(contas.router)
@@ -50,7 +50,7 @@ def login_for_access_token(session: T_Session, form: T_OAuth2Form):
 
 
 @app.post('/refresh-token', response_model=Token)
-def refresh_access_token(user: T_Current_User):
+def refresh_access_token(user: T_CurrentUser):
     new_access_token = create_access_token(data={'sub': user.email})
 
     return {'access_token': new_access_token, 'token_type': 'bearer'}
