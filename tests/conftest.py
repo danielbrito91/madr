@@ -117,7 +117,7 @@ def livro(session):
 @pytest.fixture
 def token(client, user):
     response = client.post(
-        '/user/token',
+        '/token',
         data={'username': user.email, 'password': user.clean_password},
     )
 

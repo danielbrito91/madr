@@ -2,18 +2,15 @@ from http import HTTPStatus
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
 from madr.database import get_session
 from madr.models import User
-from madr.schemas import Token, UserPublic, UserSchema
+from madr.schemas import UserPublic, UserSchema
 from madr.security import (
-    create_access_token,
     get_current_user,
     get_password_hash,
-    verify_password,
 )
 from madr.utils import sanitiza_nome
 
@@ -21,7 +18,6 @@ router = APIRouter(prefix='/user', tags=['contas'])
 
 T_Session = Annotated[Session, Depends(get_session)]
 T_Current_User = Annotated[User, Depends(get_current_user)]
-T_OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
@@ -106,25 +102,3 @@ def delete_user(
     session.commit()
 
     return {'message': 'Conta deletada com sucesso'}
-
-
-@router.post('/token', response_model=Token)
-def login_for_access_token(session: T_Session, form: T_OAuth2Form):
-    user = session.scalar(select(User).where(User.email == form.username))
-
-    if not user or not verify_password(form.password, user.password):
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail='Email ou senha incorretos',
-        )
-
-    access_token = create_access_token({'sub': user.email})
-
-    return {'access_token': access_token, 'token_type': 'bearer'}
-
-
-@router.post('/refresh-token', response_model=Token)
-def refresh_access_token(user: T_Current_User):
-    new_access_token = create_access_token(data={'sub': user.email})
-
-    return {'access_token': new_access_token, 'token_type': 'bearer'}

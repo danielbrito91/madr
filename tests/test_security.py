@@ -26,7 +26,7 @@ def test_token_expires(client, user):
     start_time = '2024-01-01 12:00:00'
     with freeze_time(start_time):
         response = client.post(
-            '/user/token',
+            '/token',
             data={'username': user.email, 'password': user.clean_password},
         )
 

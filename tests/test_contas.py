@@ -47,7 +47,7 @@ def test_create_user_conflict(client, user, payload):
 # Teste auth
 def test_get_token(client, user):
     response = client.post(
-        '/user/token',
+        '/token',
         data={'username': user.email, 'password': user.clean_password},
     )
 
@@ -69,7 +69,7 @@ def test_get_token(client, user):
 )
 def test_get_token_invalid(client, form, user):
     response = client.post(
-        '/user/token',
+        '/token',
         data=form,
     )
 
@@ -171,7 +171,7 @@ def test_delete_user_other_client_id(client, other_user, token):
 
 def test_refresh_token(client, user, token):
     response = client.post(
-        '/user/refresh-token',
+        '/refresh-token',
         headers={'Authorization': f'Bearer {token}'},
     )
 
