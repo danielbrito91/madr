@@ -15,7 +15,7 @@ from madr.models import User
 from madr.settings import Settings
 
 pwd_context = PasswordHash.recommended()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='user/token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 settings = Settings()
 
 
