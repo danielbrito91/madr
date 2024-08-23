@@ -82,18 +82,36 @@ def test_update_user(client, user, token):
         f'/user/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'username': 'new_username',
             'email': 'new_email@email.com',
+            'username': 'new_username',
             'password': 'new_password',
-            'id': 999,
         },
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'username': 'new_username',
         'email': 'new_email@email.com',
-        'id': 1,
+        'username': 'new_username',
+        'id': user.id,
+    }
+
+
+def test_update_user_password(client, user, token):
+    response = client.put(
+        f'/user/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': user.username,
+            'email': user.email,
+            'password': 'new_password',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'username': user.username,
+        'email': user.email,
+        'id': user.id,
     }
 
 

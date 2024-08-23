@@ -63,10 +63,15 @@ def update_user(
             detail='Não autorizado',
         )
 
+    # Verifica se username ou email já existem para outro id
     username_sanitizado = sanitiza_nome(user.username)
     db_user = session.scalar(
         select(User).where(
-            (User.username == username_sanitizado) | (User.email == user.email)
+            (
+                (User.username == username_sanitizado)
+                | (User.email == user.email)
+            )
+            & (User.id != user_id)
         )
     )
     if db_user:
