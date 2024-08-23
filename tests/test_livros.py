@@ -55,6 +55,17 @@ def test_add_livro_already_exists(client, token, romancista, livro):
     assert response.json() == {'detail': 'livro já consta no MADR'}
 
 
+def test_add_livro_without_token(client):
+    response = client.post(
+        '/livros/',
+        headers={'Authorization': 'Bearer 1234'},
+        json={'nome': 'Dom Casmurro'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
+
+
 def test_delete_livro(client, token, romancista, livro):
     response = client.delete(
         f'/livros/{livro.id}',
@@ -73,6 +84,16 @@ def test_delete_livro_does_not_exists(client, token, romancista, livro):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Livro não consta no MADR'}
+
+
+def test_delete_livro_without_token(client, romancista, livro):
+    response = client.delete(
+        '/livros/1',
+        headers={'Authorization': 'Bearer 1234'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
 
 
 def test_patch_livro_titulo(client, token, romancista, livro):
@@ -135,6 +156,19 @@ def test_patch_livro_doesnot_exists(client, token, romancista, livro):
     assert response.json() == {'detail': 'Livro não consta no MADR'}
 
 
+def test_patch_livro_without_token(client, romancista, livro):
+    response = client.patch(
+        f'/livros/{livro.id}',
+        headers={'Authorization': 'Bearer 1234'},
+        json={
+            'titulo': 'Dom Casmurro',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
+
+
 def test_get_livro_by_id(client, token, romancista, livro):
     response = client.get(
         f'/livros/{livro.id}',
@@ -158,6 +192,14 @@ def test_get_livro_by_id_not_found(client, token, romancista, livro):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Livro não consta no MADR'}
+
+
+def test_get_livro_by_id_without_token(client, romancista, livro):
+    response = client.get(
+        f'/livros/{livro.id}',
+    )
+
+    assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.parametrize(
@@ -206,7 +248,6 @@ def test_get_livro(  # noqa
         url,
         headers={'Authorization': f'Bearer {token}'},
     )
-    print(response.json())
     query_param, query_value = list(livros_params.items())[1]
     assert response.status_code == HTTPStatus.OK
     assert response.json()['total'] == expected_livros
@@ -216,3 +257,12 @@ def test_get_livro(  # noqa
         == (expected_livros + page_limit - 1) // page_limit
     )
     assert response.json()['items'][0][query_param] == query_value
+
+
+def test_get_livro_without_token(client, romancista, livro):
+    response = client.get(
+        '/livros/?titulo=livro',
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json()['items'][0]['titulo'] == livro.titulo

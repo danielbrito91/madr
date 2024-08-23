@@ -27,6 +27,17 @@ def test_create_romancista_already_exists(client, token, romancista):
     assert response.json() == {'detail': 'romancista já consta no MADR'}
 
 
+def test_create_romancista_without_token(client):
+    response = client.post(
+        '/romancistas/',
+        headers={'Authorization': 'Bearer 1234'},
+        json={'nome': 'Machado de Assis'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
+
+
 def test_delete_romancista(client, token, romancista):
     response = client.delete(
         f'/romancistas/{romancista.id}',
@@ -45,6 +56,16 @@ def test_delete_romancista_does_not_exist(client, token, romancista):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'romancista não encontrado'}
+
+
+def test_delete_romancista_without_token(client, romancista):
+    response = client.delete(
+        f'/romancistas/{romancista.id}',
+        headers={'Authorization': 'Bearer 1234'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
 
 
 def test_patch_romancista(client, token, romancista):
@@ -80,6 +101,17 @@ def test_patch_romancista_nome_sanitizado_already_exists(
 
     assert response.status_code == HTTPStatus.CONFLICT
     assert response.json() == {'detail': 'romancista já consta no MADR'}
+
+
+def test_patch_romancista_without_token(client, romancista):
+    response = client.patch(
+        f'/romancistas/{romancista.id}',
+        headers={'Authorization': 'Bearer 1234'},
+        json={'nome': 'Machado de Assis'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Não autorizado'}
 
 
 def test_get_romancista_by_id(client, token, romancista):

@@ -8,18 +8,24 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql import select
 
 from madr.database import get_session
-from madr.models import Romancista
+from madr.models import Romancista, User
 from madr.schemas import RomancistaList, RomancistaPublic, RomancistaSchema
+from madr.security import get_current_user
 from madr.utils import sanitiza_nome
 
 router = APIRouter(prefix='/romancistas', tags=['romancistas'])
 T_Session = Annotated[Session, Depends(get_session)]
+T_CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 @router.post(
     '/', status_code=HTTPStatus.CREATED, response_model=RomancistaPublic
 )
-def create_romancista(romancista: RomancistaSchema, session: T_Session):
+def create_romancista(
+    romancista: RomancistaSchema,
+    session: T_Session,
+    current_user: T_CurrentUser,
+):
     nome_sanitizado = sanitiza_nome(romancista.nome)
     db_romancista = session.scalar(
         select(Romancista).where((Romancista.nome == nome_sanitizado))
@@ -42,7 +48,11 @@ def create_romancista(romancista: RomancistaSchema, session: T_Session):
 
 
 @router.delete('/{romancista_id}')
-def delete_romancista(romancista_id: int, session: T_Session):
+def delete_romancista(
+    romancista_id: int,
+    session: T_Session,
+    current_user: T_CurrentUser,
+):
     db_romancista = session.scalar(
         select(Romancista).where(Romancista.id == romancista_id)
     )
@@ -56,7 +66,10 @@ def delete_romancista(romancista_id: int, session: T_Session):
 
 @router.patch('/{romancista_id}', response_model=RomancistaPublic)
 def update_romancista(
-    romancista_id: int, romancista: RomancistaSchema, session: T_Session
+    romancista_id: int,
+    romancista: RomancistaSchema,
+    session: T_Session,
+    current_user: T_CurrentUser,
 ):
     db_romancista = session.scalar(
         select(Romancista).where(Romancista.id == romancista_id)
