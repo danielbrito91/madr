@@ -114,7 +114,7 @@ def read_romancista_by_id(romancista_id: int, session: T_Session):
     return db_romancista
 
 
-@router.get('/', response_model=RomancistaList)  # Page[RomancistaPublic]
+@router.get('/', response_model=RomancistaList)
 def read_romancistas(
     session: T_Session,
     nome: str,

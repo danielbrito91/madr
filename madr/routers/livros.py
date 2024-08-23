@@ -140,7 +140,7 @@ def get_livro_by_id(
     return db_livro
 
 
-@router.get('/', response_model=LivroList)  # Page[LivroPublic]
+@router.get('/', response_model=LivroList)
 def get_livros(  # noqa
     session: T_Session,
     titulo: str | None = None,
@@ -156,7 +156,6 @@ def get_livros(  # noqa
         query = query.where(Livro.ano == ano)
 
     paginated = paginate(session, query, params)
-    print(paginated)
     return LivroList(
         total=paginated.total,
         livros=[
