@@ -115,6 +115,17 @@ def livro(session):
 
 
 @pytest.fixture
+def other_livro(session):
+    livro = LivroFactory()
+
+    session.add(livro)
+    session.commit()
+    session.refresh(livro)
+
+    return livro
+
+
+@pytest.fixture
 def token(client, user):
     response = client.post(
         '/token',
