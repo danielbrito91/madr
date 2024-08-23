@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import pytest
 
+from madr.utils import sanitiza_nome
 from tests.conftest import RomancistaFactory
 
 
@@ -179,6 +180,8 @@ def test_get_livro(  # noqa
     expected_romancistas,
     page_limit: int = 20,
 ):
+    if 'nome' in romancista_params:
+        romancista_params['nome'] = sanitiza_nome(romancista_params['nome'])
     session.bulk_save_objects(
         RomancistaFactory.create_batch(**romancista_params)
     )

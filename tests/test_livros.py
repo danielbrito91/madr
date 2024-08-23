@@ -2,7 +2,8 @@ from http import HTTPStatus
 
 import pytest
 
-from tests.conftest import LivroFactory, RomancistaFactory
+from madr.utils import sanitiza_nome
+from tests.conftest import LivroFactory
 
 
 def test_add_livro(client, token, romancista):
@@ -220,7 +221,7 @@ def test_get_livro_by_id_without_token(client, romancista, livro):
     [
         (
             {'size': 1, 'titulo': 'Dom Casmurro'},
-            '/livros/?titulo=Dom Casmurro',
+            '/livros/?titulo=dom casm',
             1,
         ),
         (
@@ -252,13 +253,11 @@ def test_get_livro(  # noqa
     livros_params,
     url,
     expected_livros,
+    romancista,
     page_limit: int = 20,
 ):
-    session.bulk_save_objects(
-        RomancistaFactory.create_batch(size=livros_params.get('size'))
-    )
-    session.commit()
-
+    if 'titulo' in livros_params:
+        livros_params['titulo'] = sanitiza_nome(livros_params['titulo'])
     session.bulk_save_objects(LivroFactory.create_batch(**livros_params))
     session.commit()
 

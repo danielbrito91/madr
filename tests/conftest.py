@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
+from testcontainers.postgres import PostgresContainer
 
 from madr.app import app
 from madr.database import get_session
@@ -33,7 +33,7 @@ class LivroFactory(factory.Factory):
 
     titulo = factory.Sequence(lambda n: f'livro{n}')
     ano = factory.Sequence(lambda n: 1900 + n)
-    romancista_id = factory.Sequence(lambda n: n + 1)
+    romancista_id = 1
 
 
 @pytest.fixture
@@ -48,14 +48,17 @@ def client(session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def session():
-    engine = create_engine(
-        'sqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-    )
+@pytest.fixture(scope='session')
+def engine():
+    with PostgresContainer('postgres:16', driver='psycopg') as postgres:
+        _engine = create_engine(postgres.get_connection_url())
 
+        with _engine.begin():
+            yield _engine
+
+
+@pytest.fixture
+def session(engine):
     table_registry.metadata.create_all(engine)
 
     with Session(engine) as session:
