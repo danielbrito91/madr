@@ -16,13 +16,13 @@ from madr.schemas import (
     LivroUpdate,
 )
 from madr.security import get_current_user
-from madr.utils import sanitiza_nome
+from madr.utils import get_params, sanitiza_nome
 
 router = APIRouter(prefix='/livros', tags=['livros'])
 
-
 T_Session = Annotated[Session, Depends(get_session)]
 T_CurrentUser = Annotated[User, Depends(get_current_user)]
+T_Page = Annotated[Params, Depends(get_params)]
 
 
 @router.post('/', response_model=LivroPublic)
@@ -143,10 +143,11 @@ def get_livro_by_id(
 @router.get('/', response_model=LivroList)
 def get_livros(  # noqa
     session: T_Session,
+    params: T_Page,
     titulo: str | None = None,
     ano: int | None = None,
-    params: Params = Params(size=20),
 ):
+    # params = Params(size = 20)
     query = select(Livro)
     if titulo:
         titulo_sanitizado = sanitiza_nome(titulo)

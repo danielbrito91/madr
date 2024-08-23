@@ -11,11 +11,13 @@ from madr.database import get_session
 from madr.models import Romancista, User
 from madr.schemas import RomancistaList, RomancistaPublic, RomancistaSchema
 from madr.security import get_current_user
-from madr.utils import sanitiza_nome
+from madr.utils import get_params, sanitiza_nome
 
 router = APIRouter(prefix='/romancistas', tags=['romancistas'])
+
 T_Session = Annotated[Session, Depends(get_session)]
 T_CurrentUser = Annotated[User, Depends(get_current_user)]
+T_Page = Annotated[Params, Depends(get_params)]
 
 
 @router.post(
@@ -117,8 +119,8 @@ def read_romancista_by_id(romancista_id: int, session: T_Session):
 @router.get('/', response_model=RomancistaList)
 def read_romancistas(
     session: T_Session,
+    params: T_Page,
     nome: str,
-    params: Params = Params(size=20),
 ):
     query = select(Romancista).where(
         Romancista.nome.contains(sanitiza_nome(nome))
