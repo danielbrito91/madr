@@ -94,7 +94,7 @@ def update_livro(
     session: T_Session,
     current_user: T_CurrentUser,
 ):
-    db_livro = session.scalar(select(Livro).where((Livro.id == livro_id)))
+    db_livro = session.scalar(select(Livro).where(Livro.id == livro_id))
 
     if not db_livro:
         raise HTTPException(
@@ -104,6 +104,16 @@ def update_livro(
     for field, value in livro.model_dump(exclude_unset=True).items():
         if field == 'titulo':
             sanitezed_value = sanitiza_nome(value)
+            title_exists = session.scalar(
+                select(Livro).where(
+                    (Livro.titulo == sanitezed_value) & (Livro.id != livro_id)
+                )
+            )
+            if title_exists:
+                raise HTTPException(
+                    status_code=HTTPStatus.CONFLICT,
+                    detail='livro já consta no MADR',
+                )
             setattr(db_livro, field, sanitezed_value)
         else:
             setattr(db_livro, field, value)

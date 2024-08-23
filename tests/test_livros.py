@@ -145,7 +145,7 @@ def test_patch_livro_romancista_id(client, token, romancista, livro):
     }
 
 
-def test_patch_livro_doesnot_exists(client, token, romancista, livro):
+def test_patch_livro_doesnot_exist(client, token, romancista, livro):
     response = client.patch(
         '/livros/999',
         json={'ano': 2000},
@@ -154,6 +154,19 @@ def test_patch_livro_doesnot_exists(client, token, romancista, livro):
 
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Livro não consta no MADR'}
+
+
+def test_patch_livro_title_already_exists(
+    client, token, romancista, livro, other_livro
+):
+    response = client.patch(
+        f'/livros/{livro.id}',
+        json={'titulo': other_livro.titulo},
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response.json() == {'detail': 'livro já consta no MADR'}
 
 
 def test_patch_livro_without_token(client, romancista, livro):
