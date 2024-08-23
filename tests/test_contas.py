@@ -55,7 +55,7 @@ def test_get_token(client, user):
 
     assert response.status_code == HTTPStatus.OK
     assert 'access_token' in token
-    assert token['token_type'] == 'Bearer'
+    assert token['token_type'] == 'bearer'
 
 
 @pytest.mark.parametrize(
@@ -180,4 +180,4 @@ def test_refresh_token(client, user, token):
     assert response.status_code == HTTPStatus.OK
     assert 'access_token' in data
     assert 'token_type' in data
-    assert data['token_type'] == 'Bearer'
+    assert data['token_type'] == 'bearer'
