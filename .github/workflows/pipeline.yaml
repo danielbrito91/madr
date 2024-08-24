@@ -28,3 +28,11 @@ jobs:
 
       - name: Run tests
         run: export PATH="/root/.local/bin:$PATH" &&  poetry run task test
+      
+      - name: Generate coverage report
+        run: export PATH="/root/.local/bin:$PATH" && poetry run coverage xml && poetry run coverage xml 
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
